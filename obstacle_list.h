@@ -2,6 +2,7 @@
 #define OBSTACLE_LIST_H
 
 #include "obstacle_node.h"
+#include "car.h"
 
 class Obstacle_List
 {
@@ -12,6 +13,7 @@ public:
     void insert(Point);
     void checkObstacles();
     int totalObstacles();
+    bool checkCollision(Car);
 };
 
 #endif // OBSTACLE_LIST_H

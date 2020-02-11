@@ -19,6 +19,17 @@ const long intervalo = 1000;
 volatile unsigned long velocity = 1500;
 int period = 20000;
 
+byte number0[8] = {   //Numero 0
+  B00000000,
+  B00111100,
+  B01100110,
+  B01101110,
+  B01110110,
+  B01100110,
+  B01100110,
+  B00111100  
+}
+
 byte number1[8] = {             //Numero 1
   B00000000,
   B00011000,
@@ -89,7 +100,7 @@ void setup() {
   lc.clearDisplay(0); //Apagar los leds
   pinMode(left, INPUT);
   pinMode(right, INPUT);
-  Serial.begin(9600); //Inicializa el purto del serial para los print
+  Serial.begin(9600); //Inicializa el puerto del serial para los print
   randomSeed(analogRead(A0)); //Semilla para generar numeros random, como se le pasa un pin que tiene solo ruido genera un random puro
 }
 
@@ -122,7 +133,18 @@ void startGame(){
       car.p4.y++;
       car.p5.y++;
     }
+    checkOut();
+
+    //CHEQUEO DE COLISION
+    if(g.obstacleList.checkCollision(car)){
+      //SE ACABO EL JUEGO
+      //MOSTRAR TIEMPO
+    }
     downwardMovement();
+    if(g.obstacleList.checkCollision(car)){
+      //SE ACABO EL JUEGO
+      //MOSTRAR TIEMPO
+    }
     g.obstacleList.checkObstacles();
     unsigned long timeObs = millis();
     if(millis() < timeObs + period && count % 3 == 0){
@@ -145,6 +167,7 @@ void startGame(){
   }
 }
 
+//Para probar la matriz de pines, no se usa
 void probar(){
   for(int i=0; i<8; i++){
     digitalWrite(rows[i], LOW);
@@ -157,6 +180,7 @@ void probar(){
   }
 }
 
+//Solo para probar en consola que tiene la matriz, no se usa en la ejecucion de la matriz led de arduino
 void printLed(){
     for(int x=0; x<16; x++){
         Serial.println("---------------------------------------------------------------------------------------------------------------------------------");
@@ -183,35 +207,6 @@ void downwardMovement(){
   }
 }
 
-void showObstacles(){
-  for(int x=0; x<16; x++){
-    byte binary = 0;
-    for(int y=7; y>=0; y--){
-      binary += (led[x][y] * pow_int(2, abs(y-7)));
-    }
-    if(x<8){
-      Serial.println("Printear en fila: " + String(x) + " con bite: " + String(binary));
-      printOnMatrix(x, byte(binary));
-    }
-  }
-  /*if(!g.obstacleList.isEmpty()){
-    Obstacle_node *tmp = g.obstacleList.first;
-    while(tmp != nullptr){
-      byte binary = 0;
-      binary += pow_int(2, abs(tmp->a[0].x-7));
-      binary += pow_int(2, abs(tmp->a[1].x-7));
-      printOnMatrix(tmp->a[0].y, byte(binary));
-      Serial.println("Impreso en fila " + String(tmp->a[0].y) + ": bits: " + String(binary));
-      binary = 0;
-      binary += pow_int(2, abs(tmp->a[2].x-7));
-      binary += pow_int(2, abs(tmp->a[3].x-7));
-      Serial.println("Impreso en fila " + String(tmp->a[2].y) + ": bits: " + String(binary));
-      printOnMatrix(tmp->a[2].y, byte(binary));
-      tmp = tmp->next;
-    }
-  }*/  
-}
-
 void cleanMatrix(){
   for(int x=0; x<16; x++){
     for(int y=0; y<8; y++){
@@ -232,6 +227,7 @@ void initializeMatrix(){
   }
 }
 
+//Guarda todo el juego en la matriz de led 16*8, tal y como indican los obstáculos y el carro.
 void saveMatrix(){
   if(!g.obstacleList.isEmpty()){
     Obstacle_node *tmp = g.obstacleList.first;
@@ -245,34 +241,6 @@ void saveMatrix(){
   led[car.p3.x][car.p3.y] = 1;
   led[car.p4.x][car.p4.y] = 1;
   led[car.p5.x][car.p5.y] = 1;
-}
-
-void printOnMatrix(int row, byte value){
-  Serial.println("row: " + String(row));
-  matrix2Time = micros();
-  while((micros() - matrix2Time) < baseTime){
-    digitalWrite(rows[row], HIGH);
-  }
-  for(int i=0; i<8; i++){
-    if(bitRead(value, i)){
-      matrix2Time = micros();
-      while((micros() - matrix2Time) < baseTime){
-        digitalWrite(columns[7-i], LOW);
-      }
-    }
-  }
-  for(int i=0; i<8; i++){
-    if(bitRead(value, i)){
-      matrix2Time = micros();
-      while((micros() - matrix2Time) < baseTime){
-        digitalWrite(columns[7-i], HIGH);
-      }
-    }
-  }
-  matrix2Time = micros();
-  while((micros() - matrix2Time) < baseTime){
-    digitalWrite(row, LOW);
-  }
 }
 
 void barrido(){ //Mostrar en matriz de leds de pines 
@@ -336,5 +304,22 @@ void showNumber2(){
 void showNumber3(){
   for(int i=0; i<8; i++){
     lc.setRow(0, i, number3[i]);
+  }
+}
+
+//Comprueba si el carro salio de la matriz en izquierda o derecha
+void checkOut(){ 
+  if(car.p1.y < 0 || car.p2.y < 0 || car.p3.y < 0 || car.p4.y < 0 || car.p5.y < 0){
+    car.p1.y = 0;
+    car.p2.y = 2;
+    car.p3.y = 1;
+    car.p4.y = 0;
+    car.p5.y = 2;
+  }else if(car.p1.y > 7 || car.p2.y > 7 || car.p3.y > 7 || car.p4.y > 7 || car.p5.y > 7){
+    car.p1.y = 5;
+    car.p2.y = 7;
+    car.p3.y = 6;
+    car.p4.y = 5;
+    car.p5.y = 7;
   }
 }
