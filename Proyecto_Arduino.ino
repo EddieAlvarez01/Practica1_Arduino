@@ -12,8 +12,45 @@ int count = 0;
 unsigned long matrix2Time;
 unsigned long baseTime = 5020;
 unsigned long timeNow = 0;
+
+unsigned long miliseconds = 0;
+const long intervalo = 1000;
+
 volatile unsigned long velocity = 1500;
 int period = 20000;
+
+byte number1[8] = {             //Numero 1
+  B00000000,
+  B00011000,
+  B00011000,
+  B00111000,
+  B00011000,
+  B00011000,
+  B00011000,
+  B01111110
+};
+ 
+byte number2[8] = {     //Numero 2
+  B00000000,
+  B00111100,
+  B01100110,
+  B00000110,
+  B00001100,
+  B00110000,
+  B01100000,
+  B01111110
+};
+
+byte number3[8] = {    //Numero 3
+  B00000000,
+  B00111100,
+  B01100110,
+  B00000110,
+  B00011100,
+  B00000110,
+  B01100110,
+  B00111100
+};
 
 int left = 22; //Pin para mover a la izquierda
 int right = 23; //Pin para mover a la derecha
@@ -45,6 +82,7 @@ int rows[] = { f0, f1, f2, f3, f4, f5, f6, f7 };
 int columns[] = { c0, c1, c2, c3, c4, c5, c6, c7 };
 
 void setup() {
+  
   initializeMatrix(); //Inicializa la matriz de leds
   lc.shutdown(0, false); //Inicializados la matrix con max
   lc.setIntensity(0, 5); //Intensidad de los led con el max
@@ -57,39 +95,54 @@ void setup() {
 
 void loop() {
   // put your main code here, to run repeatedly:
-  if(digitalRead(left)){
-    Serial.println("Izquierda");
-    car.p1.y--;
-    car.p2.y--;
-    car.p3.y--;
-    car.p4.y--;
-    car.p5.y--;
-  }else if(digitalRead(right)){
-    car.p1.y++;
-    car.p2.y++;
-    car.p3.y++;
-    car.p4.y++;
-    car.p5.y++;
-  }
-  downwardMovement();
-  g.obstacleList.checkObstacles();
-  unsigned long timeObs = millis();
-  if(millis() < timeObs + period && count % 3 == 0){
-    int generate = random(0, 11);
-    if(generate > 10){
-      generate = 10;
+  countdown();
+  miliseconds = millis();
+  startGame();
+}
+
+unsigned long tiempoS(){
+  unsigned long segActual = millis();
+  unsigned long segundos = (segActual - miliseconds)/1000;
+  return segundos;
+}
+
+void startGame(){
+  while(1){
+      if(digitalRead(left)){
+      Serial.println("Izquierda");
+      car.p1.y--;
+      car.p2.y--;
+      car.p3.y--;
+      car.p4.y--;
+      car.p5.y--;
+    }else if(digitalRead(right)){
+      car.p1.y++;
+      car.p2.y++;
+      car.p3.y++;
+      car.p4.y++;
+      car.p5.y++;
     }
-    if(generate == 2 || generate == 5){
-      g.generateObstacle();
-      Serial.println("nUMERO DE OBSTACULOS: " + String(g.obstacleList.totalObstacles()));
-    } 
+    downwardMovement();
+    g.obstacleList.checkObstacles();
+    unsigned long timeObs = millis();
+    if(millis() < timeObs + period && count % 3 == 0){
+      int generate = random(0, 11);
+      if(generate > 10){
+        generate = 10;
+      }
+      if(generate == 2 || generate == 5){
+        g.generateObstacle();
+        Serial.println("nUMERO DE OBSTACULOS: " + String(g.obstacleList.totalObstacles()));
+      } 
+    }
+    saveMatrix();
+    //printLed();
+    barrido();
+    //showObstacles();
+    cleanMatrix();
+    count++;
+    //Serial.println("Tiempo en s: " + String(tiempoS()));
   }
-  saveMatrix();
-  //printLed();
-  barrido();
-  //showObstacles();
-  cleanMatrix();
-  count++;
 }
 
 void probar(){
@@ -222,8 +275,8 @@ void printOnMatrix(int row, byte value){
   }
 }
 
-void barrido(){
-  int tmpMatrix[8][8] = {0};
+void barrido(){ //Mostrar en matriz de leds de pines 
+  int tmpMatrix[8][8] = {0}; /* Mete a una matriz 8x8  los 1 de la matrzi 16*8 */
   for(int x=0; x<8; x++){
     for(int y=0; y<8; y++){
       if(led[x][y]){
@@ -231,7 +284,7 @@ void barrido(){
       }
     }
   }
-    for(int de=0; de<=50; de++){
+    for(int de=0; de<=50; de++){ //Barrido para mostrar la matriz
       for(int x=0; x<8; x++){
         byte binary = 0;
         for(int y=0; y<8; y++){
@@ -242,7 +295,7 @@ void barrido(){
             digitalWrite(columns[x], LOW);
             digitalWrite(rows[y], HIGH);
           }
-          binary += (led[x+8][7-y] * pow_int(2, y));
+          binary += (led[x+8][7-y] * pow_int(2, y)); //Obtiene el numero decimal equivalente a un binario para encender un fila de leds en la matriz con modulo   ej: 1 = 00000001
         }
         lc.setRow(0, x, byte(binary));
       }
@@ -257,4 +310,31 @@ int pow_int(int b,int e){
     r=r*b;
   }
   return r;    
+}
+
+void countdown(){
+  showNumber3();
+  delay(1000);
+  showNumber2();
+  delay(1000);
+  showNumber1();
+  delay(1000);
+}
+
+void showNumber1(){
+  for(int i=0; i<8; i++){
+    lc.setRow(0, i, number1[i]);
+  }
+}
+
+void showNumber2(){
+  for(int i=0; i<8; i++){
+    lc.setRow(0, i, number2[i]);
+  }
+}
+
+void showNumber3(){
+  for(int i=0; i<8; i++){
+    lc.setRow(0, i, number3[i]);
+  }
 }
