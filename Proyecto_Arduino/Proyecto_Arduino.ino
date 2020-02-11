@@ -7,6 +7,7 @@ int oscilation_speed = 300;
 int left = 22; //Pin para mover a la izquierda
 int right = 23; //Pin para mover a la derecha
 int direction_pin = 30; //pin para controlar la direccion del letrero
+LedControl lc = LedControl(19, 21, 20, 1); //Objeto de libreria del modulo recibe (DIN, CLK, CS, NO. DISPOSITIVOS)
 //Pines para la matriz que no tiene módulo, filas
 int f0 = 16;
 int f1 = 17;
@@ -274,6 +275,13 @@ void graph_row(int* row){
   }
 }
 void graph(int** matrix) {
+  for(short i = 0; i<8; i++){
+    byte binary = 0;
+    for(short j=0; j<8; j++){
+      binary += (matrix[i+8][7-j] * pow_int(2, j)); 
+    }
+    lc.setRow(0, i, byte(binary));
+  }
   for(int r = 0; r<oscilation_speed; r++){
     for(short i=0; i<8; i++){
       clean_matrix_graph();
@@ -293,7 +301,6 @@ void change_direction(){
 ////////////////////////////////////////////END LETRERO////////////////////////////////////////////////////////////////////
 
 Game g; //Objeto de game
-LedControl lc = LedControl(19, 21, 20, 1); //Objeto de libreria del modulo recibe (DIN, CLK, CS, NO. DISPOSITIVOS)
 Car car; //Carrito
 
 
