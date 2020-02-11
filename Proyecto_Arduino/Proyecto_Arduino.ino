@@ -6,7 +6,7 @@ int opcion_actual = 0;
 int oscilation_speed = 300;
 int left = 22; //Pin para mover a la izquierda
 int right = 23; //Pin para mover a la derecha
-
+int direction_pin = 30; //pin para controlar la direccion del letrero
 //Pines para la matriz que no tiene módulo, filas
 int f0 = 16;
 int f1 = 17;
@@ -284,8 +284,11 @@ void graph(int** matrix) {
 }
 
 void read_oscilation_speed(){
-   
-    
+  oscilation_speed = analogRead(A0);      
+  oscilation_speed = oscilation_speed/1.2 + 20;      
+}
+void change_direction(){
+  direccion = digitalRead(direction_pin);
 }
 ////////////////////////////////////////////END LETRERO////////////////////////////////////////////////////////////////////
 
@@ -531,6 +534,7 @@ void setup() {
   lc.clearDisplay(0); //Apagar los leds
   pinMode(left, INPUT);
   pinMode(right, INPUT);
+  pinMode(30, INPUT);  
   Serial.begin(9600); //Inicializa el puerto del serial para los print
   randomSeed(analogRead(A0)); //Semilla para generar numeros random, como se le pasa un pin que tiene solo ruido genera un random puro
 }
@@ -548,6 +552,7 @@ void loop() {
             delete [] part[i];
           delete [] part;
           read_oscilation_speed();
+          change_direction();
         }break;
       case 1:{
         countdown();
