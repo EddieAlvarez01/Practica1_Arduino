@@ -28,25 +28,6 @@ void Obstacle_List::insert(Point p1){
   }
 }
 
-bool Obstacle_List::checkCollision(Car car){
-  if(first != nullptr){
-    Obstacle_node *tmp = first;
-    while(tmp != nullptr){
-      if(tmp->a[0].x == car.p1.x || tmp->a[0].x == car.p1.y || tmp->a[0].x == car.p2.x || tmp->a[0].x == car.p2.y || 
-         tmp->a[0].x == car.p3.x || tmp->a[0].x == car.p3.y || tmp->a[0].x == car.p4.x || tmp->a[0].x == car.p4.y ||
-         tmp->a[0].x == car.p5.x || tmp->a[0].x == car.p5.y){
-          return true;
-      }else if(tmp->a[0].y == car.p1.x || tmp->a[0].y == car.p1.y || tmp->a[0].y == car.p2.x || tmp->a[0].y == car.p2.y || 
-               tmp->a[0].y == car.p3.x || tmp->a[0].y == car.p3.y || tmp->a[0].y == car.p4.x || tmp->a[0].y == car.p4.y ||
-               tmp->a[0].y == car.p5.x || tmp->a[0].y == car.p5.y){
-          return true;
-      }
-      tmp = tmp->next;
-    }
-  }
-  return false;  
-}
-
 void Obstacle_List::checkObstacles(){
   if(first != nullptr){
     Obstacle_node *tmp = first;
