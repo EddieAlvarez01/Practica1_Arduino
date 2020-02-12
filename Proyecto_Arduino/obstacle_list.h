@@ -2,6 +2,7 @@
 #define OBSTACLE_LIST_H
 
 #include "obstacle_node.h"
+#include "Arduino.h"
 #include "car.h"
 
 class Obstacle_List

@@ -23,8 +23,8 @@ void Game::generateObstacle(){
     if(posX > 7){
         posX = 7;
     }
-    Point a[4];
-    a[0].x = posX;
-    a[0].y = 0;
-    obstacleList.insert(a[0]);
+    Point a;
+    a.x = posX;
+    a.y = 0;
+    obstacleList.insert(a);
 }

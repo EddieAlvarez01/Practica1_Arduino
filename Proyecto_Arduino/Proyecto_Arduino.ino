@@ -2,12 +2,18 @@
 #include "car.h"
 #include "obstacle_node.h"
 #include "LedControl.h"
+
 int opcion_actual = 0;
 int oscilation_speed = 300;
+unsigned long pressedTime = 0;  //Verifica el tiempo de presion del boton para inciar el juego
+unsigned long noPressedTime = 0;
+unsigned long timePaused = 0;
 int left = 22; //Pin para mover a la izquierda
 int right = 23; //Pin para mover a la derecha
+int pause = 25; //Pin para el boton de pausa
 int direction_pin = 30; //pin para controlar la direccion del letrero
 LedControl lc = LedControl(19, 21, 20, 1); //Objeto de libreria del modulo recibe (DIN, CLK, CS, NO. DISPOSITIVOS)
+
 //Pines para la matriz que no tiene módulo, filas
 int f0 = 16;
 int f1 = 17;
@@ -35,6 +41,210 @@ int rows[] = { f0, f1, f2, f3, f4, f5, f6, f7 };
 int columns[] = { c0, c1, c2, c3, c4, c5, c6, c7 };
 ////////////////////////////////////////////LETRERO///////////////////////////////////
 #define LARGO 197
+
+byte number0M[8][8] = {
+  0,0,0,0,0,0,0,0,
+  0,0,1,1,1,1,0,0,
+  0,1,1,0,0,1,1,0,
+  0,1,1,0,1,1,1,0,
+  0,1,1,1,0,1,1,0,
+  0,1,1,0,0,1,1,0,
+  0,1,1,0,0,1,1,0,
+  0,0,1,1,1,1,0,0
+};
+
+byte number1M[8][8] = {
+  0,0,0,0,0,0,0,0,
+  0,0,0,1,1,0,0,0,
+  0,0,0,1,1,0,0,0,
+  0,0,1,1,1,0,0,0,
+  0,0,0,1,1,0,0,0,
+  0,0,0,1,1,0,0,0,
+  0,0,0,1,1,0,0,0,
+  0,1,1,1,1,1,1,0
+};
+
+byte number2M[8][8] = {
+  0,0,0,0,0,0,0,0,
+  0,0,1,1,1,1,0,0,
+  0,1,1,0,0,1,1,0,
+  0,0,0,0,0,1,1,0,
+  0,0,0,0,1,1,0,0,
+  0,0,1,1,0,0,0,0,
+  0,1,1,0,0,0,0,0,
+  0,1,1,1,1,1,1,0
+};
+
+byte number3M[8][8] = {
+  0,0,0,0,0,0,0,0,
+  0,0,1,1,1,1,0,0,
+  0,1,1,0,0,1,1,0,
+  0,0,0,0,0,1,1,0,
+  0,0,0,1,1,1,0,0,
+  0,0,0,0,0,1,1,0,
+  0,1,1,0,0,1,1,0,
+  0,0,1,1,1,1,0,0
+};
+
+byte number4M[8][8] = {
+  0,0,0,0,0,0,0,0,
+  0,0,0,0,1,1,0,0,
+  0,0,0,1,1,1,0,0,
+  0,0,1,0,1,1,0,0,
+  0,1,0,0,1,1,0,0,
+  0,1,1,1,1,1,1,0,
+  0,0,0,0,1,1,0,0,
+  0,0,0,0,1,1,0,0
+};
+
+byte number5M[8][8] = {
+  0,0,0,0,0,0,0,0,
+  0,1,1,1,1,1,1,0,
+  0,1,1,0,0,0,0,0,
+  0,1,1,1,1,1,0,0,
+  0,0,0,0,0,1,1,0,
+  0,0,0,0,0,1,1,0,
+  0,1,1,0,0,1,1,0,
+  0,0,1,1,1,1,0,0
+};
+
+byte number6M[8][8] = {
+  0,0,0,0,0,0,0,0,
+  0,0,1,1,1,1,0,0,
+  0,1,1,0,0,1,1,0,
+  0,1,1,0,0,0,0,0,
+  0,1,1,1,1,1,0,0,
+  0,1,1,0,0,1,1,0,
+  0,1,1,0,0,1,1,0,
+  0,0,1,1,1,1,0,0
+};
+
+byte number7M[8][8] = {
+  0,0,0,0,0,0,0,0,
+  0,1,1,1,1,1,1,0,
+  0,1,1,0,0,1,1,0,
+  0,0,0,0,1,1,0,0,
+  0,0,0,0,1,1,0,0,
+  0,0,0,1,1,0,0,0,
+  0,0,0,1,1,0,0,0,
+  0,0,0,1,1,0,0,0
+};
+
+byte number8M[8][8] = {
+  0,0,0,0,0,0,0,0,
+  0,0,1,1,1,1,0,0,
+  0,1,1,0,0,1,1,0,
+  0,1,1,0,0,1,1,0,
+  0,0,1,1,1,1,0,0,
+  0,1,1,0,0,1,1,0,
+  0,1,1,0,0,1,1,0,
+  0,0,1,1,1,1,0,0
+};
+
+byte number9M[8][8] = {
+  0,0,0,0,0,0,0,0,
+  0,0,1,1,1,1,0,0,
+  0,1,1,0,0,1,1,0,
+  0,1,1,0,0,1,1,0,
+  0,0,1,1,1,1,1,0,
+  0,0,0,0,0,1,1,0,
+  0,1,1,0,0,1,1,0,
+  0,0,1,1,1,1,0,0
+};
+
+byte numeros[][8] = {
+{
+  B00000000,
+  B00111100,
+  B01100110,
+  B01101110,
+  B01110110,
+  B01100110,
+  B01100110,
+  B00111100
+},  
+{
+  B00000000,
+  B00011000,
+  B00011000,
+  B00111000,
+  B00011000,
+  B00011000,
+  B00011000,
+  B01111110
+},{
+  B00000000,
+  B00111100,
+  B01100110,
+  B00000110,
+  B00001100,
+  B00110000,
+  B01100000,
+  B01111110
+},{
+  B00000000,
+  B00111100,
+  B01100110,
+  B00000110,
+  B00011100,
+  B00000110,
+  B01100110,
+  B00111100
+},{
+  B00000000,
+  B00001100,
+  B00011100,
+  B00101100,
+  B01001100,
+  B01111110,
+  B00001100,
+  B00001100
+},{
+  B00000000,
+  B01111110,
+  B01100000,
+  B01111100,
+  B00000110,
+  B00000110,
+  B01100110,
+  B00111100
+},{
+  B00000000,
+  B00111100,
+  B01100110,
+  B01100000,
+  B01111100,
+  B01100110,
+  B01100110,
+  B00111100
+},{
+  B00000000,
+  B01111110,
+  B01100110,
+  B00001100,
+  B00001100,
+  B00011000,
+  B00011000,
+  B00011000
+},{
+  B00000000,
+  B00111100,
+  B01100110,
+  B01100110,
+  B00111100,
+  B01100110,
+  B01100110,
+  B00111100
+},{
+  B00000000,
+  B00111100,
+  B01100110,
+  B01100110,
+  B00111110,
+  B00000110,
+  B01100110,
+  B00111100
+}};
 
 int direccion = 0;
 int index = 0;
@@ -305,7 +515,6 @@ Car car; //Carrito
 
 
 int led[16][8] = {0};
-int count = 0;
 unsigned long matrix2Time;
 unsigned long baseTime = 5020;
 unsigned long timeNow = 0;
@@ -313,69 +522,14 @@ unsigned long timeNow = 0;
 unsigned long miliseconds = 0;
 const long intervalo = 1000;
 
-volatile unsigned long velocity = 1500;
-int period = 20000;
+volatile unsigned long velocity = 1500; //1500 base
+int period = 4; //base 4
 
-byte number0[8] = {   //Numero 0
-  B00000000,
-  B00111100,
-  B01100110,
-  B01101110,
-  B01110110,
-  B01100110,
-  B01100110,
-  B00111100  
-}
-
-byte number1[8] = {             //Numero 1
-  B00000000,
-  B00011000,
-  B00011000,
-  B00111000,
-  B00011000,
-  B00011000,
-  B00011000,
-  B01111110
-};
- 
-byte number2[8] = {     //Numero 2
-  B00000000,
-  B00111100,
-  B01100110,
-  B00000110,
-  B00001100,
-  B00110000,
-  B01100000,
-  B01111110
-};
-
-byte number3[8] = {    //Numero 3
-  B00000000,
-  B00111100,
-  B01100110,
-  B00000110,
-  B00011100,
-  B00000110,
-  B01100110,
-  B00111100
-};
+//Devuelve el tiempo de juego
 unsigned long tiempoS(){
   unsigned long segActual = millis();
   unsigned long segundos = (segActual - miliseconds)/1000;
   return segundos;
-}
-
-
-void probar(){
-  for(int i=0; i<8; i++){
-    digitalWrite(rows[i], LOW);
-    for(int y=0; y<8; y++){
-      digitalWrite(columns[y], HIGH);
-      delay(250);
-      digitalWrite(columns[y], LOW);
-    }
-    digitalWrite(rows[i],HIGH);
-  }
 }
 
 void printLed(){
@@ -396,24 +550,11 @@ void downwardMovement(){
     if(!g.obstacleList.isEmpty()){
       Obstacle_node *tmp = g.obstacleList.first;
       while(tmp != nullptr){
-        tmp->a[0].y++;
+        tmp->a.y++;
         tmp = tmp->next;
       }
     }
     timeNow = millis();
-  }
-}
-
-void showObstacles(){
-  for(int x=0; x<16; x++){
-    byte binary = 0;
-    for(int y=7; y>=0; y--){
-      binary += (led[x][y] * pow_int(2, abs(y-7)));
-    }
-    if(x<8){
-      Serial.println("Printear en fila: " + String(x) + " con bite: " + String(binary));
-      printOnMatrix(x, byte(binary));
-    }
   }
 }
 
@@ -441,7 +582,7 @@ void saveMatrix(){
   if(!g.obstacleList.isEmpty()){
     Obstacle_node *tmp = g.obstacleList.first;
     while(tmp != nullptr){
-      led[tmp->a[0].y][tmp->a[0].x] = 1;
+      led[tmp->a.y][tmp->a.x] = 1;
       tmp = tmp->next;
     }
   }
@@ -450,34 +591,6 @@ void saveMatrix(){
   led[car.p3.x][car.p3.y] = 1;
   led[car.p4.x][car.p4.y] = 1;
   led[car.p5.x][car.p5.y] = 1;
-}
-
-void printOnMatrix(int row, byte value){
-  Serial.println("row: " + String(row));
-  matrix2Time = micros();
-  while((micros() - matrix2Time) < baseTime){
-    digitalWrite(rows[row], HIGH);
-  }
-  for(int i=0; i<8; i++){
-    if(bitRead(value, i)){
-      matrix2Time = micros();
-      while((micros() - matrix2Time) < baseTime){
-        digitalWrite(columns[7-i], LOW);
-      }
-    }
-  }
-  for(int i=0; i<8; i++){
-    if(bitRead(value, i)){
-      matrix2Time = micros();
-      while((micros() - matrix2Time) < baseTime){
-        digitalWrite(columns[7-i], HIGH);
-      }
-    }
-  }
-  matrix2Time = micros();
-  while((micros() - matrix2Time) < baseTime){
-    digitalWrite(row, LOW);
-  }
 }
 
 void barrido(){ //Mostrar en matriz de leds de pines 
@@ -519,33 +632,63 @@ int pow_int(int b,int e){
 
 void countdown(){
   showNumber3();
-  delay(1000);
   showNumber2();
-  delay(1000);
   showNumber1();
-  delay(1000);
 }
 
 void showNumber1(){
-  for(int i=0; i<8; i++){
-    lc.setRow(0, i, number1[i]);
-  }
+  //showZeroMatriz();
+  for(int de=0; de<=50; de++){ //Barrido para mostrar la matriz
+      for(int x=0; x<8; x++){
+        for(int y=0; y<8; y++){
+          if(number0M[y][x]){
+            digitalWrite(columns[x], HIGH);
+            digitalWrite(rows[y], LOW);
+            delay(1);
+            digitalWrite(columns[x], LOW);
+            digitalWrite(rows[y], HIGH);
+          }
+          lc.setRow(0, y, numeros[1][y]);
+        }
+      }
+   }
 }
 
 void showNumber2(){
-  for(int i=0; i<8; i++){
-    lc.setRow(0, i, number2[i]);
-  }
+  for(int de=0; de<=50; de++){ //Barrido para mostrar la matriz
+      for(int x=0; x<8; x++){
+        for(int y=0; y<8; y++){
+          if(number0M[y][x]){
+            digitalWrite(columns[x], HIGH);
+            digitalWrite(rows[y], LOW);
+            delay(1);
+            digitalWrite(columns[x], LOW);
+            digitalWrite(rows[y], HIGH);
+          }
+          lc.setRow(0, y, numeros[2][y]);
+        }
+      }
+   }
 }
 
 void showNumber3(){
-  for(int i=0; i<8; i++){
-    lc.setRow(0, i, number3[i]);
-  }
+  for(int de=0; de<=50; de++){ //Barrido para mostrar la matriz
+      for(int x=0; x<8; x++){
+        for(int y=0; y<8; y++){
+          if(number0M[y][x]){
+            digitalWrite(columns[x], HIGH);
+            digitalWrite(rows[y], LOW);
+            delay(1);
+            digitalWrite(columns[x], LOW);
+            digitalWrite(rows[y], HIGH);
+          }
+          lc.setRow(0, y, numeros[3][y]);
+        }
+      }
+   }
 }
 
 void setup() {
-  
   initializeMatrix(); //Inicializa la matriz de leds
   lc.shutdown(0, false); //Inicializados la matrix con max
   lc.setIntensity(0, 5); //Intensidad de los led con el max
@@ -571,11 +714,21 @@ void loop() {
           delete [] part;
           read_oscilation_speed();
           change_direction();
+         if(digitalRead(pause)){
+            pressedTime = millis();
+            if((pressedTime -  noPressedTime) >= 2800){
+              lc.clearDisplay(0);
+              opcion_actual = 2;
+              cleanMatrix();
+              countdown();
+              miliseconds = millis();
+              break;
+            }
+          }else{
+            noPressedTime = millis();
+          }
         }break;
       case 1:{
-        countdown();
-        opcion_actual = 2;
-        miliseconds = millis();
       }break;
       case 2:{
         if(digitalRead(left)){
@@ -592,34 +745,237 @@ void loop() {
           car.p5.y++;
         }
         checkOut();
+        if(digitalRead(pause)){
+          timePaused = tiempoS();
+          opcion_actual = 4;
+          break;
+        }
         //CHEQUEO DE COLISION
         if(g.obstacleList.checkCollision(car)){
-          //SE ACABO EL JUEGO
-          //MOSTRAR TIEMPO
+          timePaused = tiempoS();
+          opcion_actual = 3;
+          break;
         }
         downwardMovement();
         if(g.obstacleList.checkCollision(car)){
-          //SE ACABO EL JUEGO
-          //MOSTRAR TIEMPO
+          timePaused = tiempoS();
+          opcion_actual = 3;
+          break;
         }
         g.obstacleList.checkObstacles();
-        unsigned long timeObs = millis();
-        if(millis() < timeObs + period && count % 3 == 0){
+        if(tiempoS() % period == 0){
           int generate = random(0, 11);
           if(generate > 10){
             generate = 10;
           }
-          if(generate == 2 || generate == 5){
+          if(generate == 2){
             g.generateObstacle();
-            Serial.println("nUMERO DE OBSTACULOS: " + String(g.obstacleList.totalObstacles()));
           } 
         }
         saveMatrix();
         barrido();
         cleanMatrix();
-        count++;
+    }break;
+    case 3:{
+      showTimePlayed(timePaused);
+      if(digitalRead(pause)){
+        opcion_actual = 0;
+        break;
+      }
+    }break;
+    case 4:{
+      showTimePlayed(timePaused);
+      if(digitalRead(pause)){
+        countdown();
+        opcion_actual = 2;
+        break;
+      }
     }break;  
   }
+}
+
+void showTimePlayed(unsigned long timeGame){
+  if(timeGame > 99){
+    for(int de=0; de<50; de++){ //Barrido para mostrar la matriz
+      for(int x=0; x<8; x++){
+        for(int y=0; y<8; y++){
+          if(number9M[y][x]){
+            digitalWrite(columns[x], HIGH);
+            digitalWrite(rows[y], LOW);
+            delay(1);
+            digitalWrite(columns[x], LOW);
+            digitalWrite(rows[y], HIGH);
+          }
+          lc.setRow(0, y, numeros[9][y]);
+        }
+      }
+    }
+  }else{
+    int d = timeGame / 10;
+    int u = timeGame % 10;
+    switch(d){
+      case 0:
+        for(int de=0; de<50; de++){ //Barrido para mostrar la matriz
+          for(int x=0; x<8; x++){
+            for(int y=0; y<8; y++){
+              if(number0M[y][x]){
+                digitalWrite(columns[x], HIGH);
+                digitalWrite(rows[y], LOW);
+                delay(1);
+                digitalWrite(columns[x], LOW);
+                digitalWrite(rows[y], HIGH);
+              }
+              lc.setRow(0, y, numeros[u][y]);
+            }
+          }
+        }
+      break;
+      case 1:
+        for(int de=0; de<50; de++){ //Barrido para mostrar la matriz
+          for(int x=0; x<8; x++){
+            for(int y=0; y<8; y++){
+              if(number1M[y][x]){
+                digitalWrite(columns[x], HIGH);
+                digitalWrite(rows[y], LOW);
+                delay(1);
+                digitalWrite(columns[x], LOW);
+                digitalWrite(rows[y], HIGH);
+              }
+              lc.setRow(0, y, numeros[u][y]);
+            }
+          }
+        }
+      break;
+      case 2:
+        for(int de=0; de<50; de++){ //Barrido para mostrar la matriz
+          for(int x=0; x<8; x++){
+            for(int y=0; y<8; y++){
+              if(number2M[y][x]){
+                digitalWrite(columns[x], HIGH);
+                digitalWrite(rows[y], LOW);
+                delay(1);
+                digitalWrite(columns[x], LOW);
+                digitalWrite(rows[y], HIGH);
+              }
+              lc.setRow(0, y, numeros[u][y]);
+            }
+          }
+        }
+      break;
+      case 3:
+        for(int de=0; de<50; de++){ //Barrido para mostrar la matriz
+          for(int x=0; x<8; x++){
+            for(int y=0; y<8; y++){
+              if(number3M[y][x]){
+                digitalWrite(columns[x], HIGH);
+                digitalWrite(rows[y], LOW);
+                delay(1);
+                digitalWrite(columns[x], LOW);
+                digitalWrite(rows[y], HIGH);
+              }
+              lc.setRow(0, y, numeros[u][y]);
+            }
+          }
+        }
+      break;
+      case 4:
+        for(int de=0; de<50; de++){ //Barrido para mostrar la matriz
+          for(int x=0; x<8; x++){
+            for(int y=0; y<8; y++){
+              if(number4M[y][x]){
+                digitalWrite(columns[x], HIGH);
+                digitalWrite(rows[y], LOW);
+                delay(1);
+                digitalWrite(columns[x], LOW);
+                digitalWrite(rows[y], HIGH);
+              }
+              lc.setRow(0, y, numeros[u][y]);
+            }
+          }
+        }
+      break;
+      case 5:
+        for(int de=0; de<50; de++){ //Barrido para mostrar la matriz
+          for(int x=0; x<8; x++){
+            for(int y=0; y<8; y++){
+              if(number5M[y][x]){
+                digitalWrite(columns[x], HIGH);
+                digitalWrite(rows[y], LOW);
+                delay(1);
+                digitalWrite(columns[x], LOW);
+                digitalWrite(rows[y], HIGH);
+              }
+              lc.setRow(0, y, numeros[u][y]);
+            }
+          }
+        }
+      break;
+      case 6:
+        for(int de=0; de<50; de++){ //Barrido para mostrar la matriz
+          for(int x=0; x<8; x++){
+            for(int y=0; y<8; y++){
+              if(number6M[y][x]){
+                digitalWrite(columns[x], HIGH);
+                digitalWrite(rows[y], LOW);
+                delay(1);
+                digitalWrite(columns[x], LOW);
+                digitalWrite(rows[y], HIGH);
+              }
+              lc.setRow(0, y, numeros[u][y]);
+            }
+          }
+        }
+      break;
+      case 7:
+        for(int de=0; de<50; de++){ //Barrido para mostrar la matriz
+          for(int x=0; x<8; x++){
+            for(int y=0; y<8; y++){
+              if(number7M[y][x]){
+                digitalWrite(columns[x], HIGH);
+                digitalWrite(rows[y], LOW);
+                delay(1);
+                digitalWrite(columns[x], LOW);
+                digitalWrite(rows[y], HIGH);
+              }
+              lc.setRow(0, y, numeros[u][y]);
+            }
+          }
+        }
+      break;
+      case 8:
+        for(int de=0; de<50; de++){ //Barrido para mostrar la matriz
+          for(int x=0; x<8; x++){
+            for(int y=0; y<8; y++){
+              if(number8M[y][x]){
+                digitalWrite(columns[x], HIGH);
+                digitalWrite(rows[y], LOW);
+                delay(1);
+                digitalWrite(columns[x], LOW);
+                digitalWrite(rows[y], HIGH);
+              }
+              lc.setRow(0, y, numeros[u][y]);
+            }
+          }
+        }
+      break;
+      case 9:
+        for(int de=0; de<50; de++){ //Barrido para mostrar la matriz
+          for(int x=0; x<8; x++){
+            for(int y=0; y<8; y++){
+              if(number9M[y][x]){
+                digitalWrite(columns[x], HIGH);
+                digitalWrite(rows[y], LOW);
+                delay(1);
+                digitalWrite(columns[x], LOW);
+                digitalWrite(rows[y], HIGH);
+              }
+              lc.setRow(0, y, numeros[u][y]);
+            }
+          }
+        }
+      break;
+    }
+  }  
 }
 
 //Comprueba si el carro salio de la matriz en izquierda o derecha

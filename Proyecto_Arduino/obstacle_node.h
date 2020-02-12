@@ -7,7 +7,7 @@ class Obstacle_node
 {
 public:
     Obstacle_node(Point);
-    Point a[4];
+    Point a;
     Obstacle_node *next;
 };
 

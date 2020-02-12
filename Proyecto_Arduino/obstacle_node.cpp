@@ -2,6 +2,6 @@
 
 Obstacle_node::Obstacle_node(Point p1)
 {
-  a[0] = p1;
+  a = p1;
   next = nullptr;
 }
