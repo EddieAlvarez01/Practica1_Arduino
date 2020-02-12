@@ -284,8 +284,8 @@ void graph(int** matrix) {
 }
 
 void read_oscilation_speed(){
-  oscilation_speed = analogRead(A0);      
-  oscilation_speed = oscilation_speed/1.2 + 20;      
+  oscilation_speed = analogRead(A2);      
+  oscilation_speed = oscilation_speed*10/12 + 20;      
 }
 void change_direction(){
   direccion = digitalRead(direction_pin);
