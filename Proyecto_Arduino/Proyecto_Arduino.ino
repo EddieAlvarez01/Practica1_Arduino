@@ -309,6 +309,17 @@ const long intervalo = 1000;
 volatile unsigned long velocity = 1500;
 int period = 20000;
 
+byte number0[8] = {   //Numero 0
+  B00000000,
+  B00111100,
+  B01100110,
+  B01101110,
+  B01110110,
+  B01100110,
+  B01100110,
+  B00111100  
+}
+
 byte number1[8] = {             //Numero 1
   B00000000,
   B00011000,
@@ -561,7 +572,6 @@ void loop() {
       }break;
       case 2:{
         if(digitalRead(left)){
-          Serial.println("Izquierda");
           car.p1.y--;
           car.p2.y--;
           car.p3.y--;
@@ -574,7 +584,17 @@ void loop() {
           car.p4.y++;
           car.p5.y++;
         }
+        checkOut();
+        //CHEQUEO DE COLISION
+        if(g.obstacleList.checkCollision(car)){
+          //SE ACABO EL JUEGO
+          //MOSTRAR TIEMPO
+        }
         downwardMovement();
+        if(g.obstacleList.checkCollision(car)){
+          //SE ACABO EL JUEGO
+          //MOSTRAR TIEMPO
+        }
         g.obstacleList.checkObstacles();
         unsigned long timeObs = millis();
         if(millis() < timeObs + period && count % 3 == 0){
@@ -592,5 +612,22 @@ void loop() {
         cleanMatrix();
         count++;
     }break;  
+  }
+}
+
+//Comprueba si el carro salio de la matriz en izquierda o derecha
+void checkOut(){ 
+  if(car.p1.y < 0 || car.p2.y < 0 || car.p3.y < 0 || car.p4.y < 0 || car.p5.y < 0){
+    car.p1.y = 0;
+    car.p2.y = 2;
+    car.p3.y = 1;
+    car.p4.y = 0;
+    car.p5.y = 2;
+  }else if(car.p1.y > 7 || car.p2.y > 7 || car.p3.y > 7 || car.p4.y > 7 || car.p5.y > 7){
+    car.p1.y = 5;
+    car.p2.y = 7;
+    car.p3.y = 6;
+    car.p4.y = 5;
+    car.p5.y = 7;
   }
 }
