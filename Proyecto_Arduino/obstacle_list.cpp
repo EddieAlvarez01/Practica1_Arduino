@@ -75,3 +75,7 @@ int Obstacle_List::totalObstacles(){
   }
   return 0;
 }
+
+void Obstacle_List::cleanList(){
+  first = nullptr;
+}

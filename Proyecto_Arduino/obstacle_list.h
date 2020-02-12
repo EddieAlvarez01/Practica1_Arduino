@@ -15,6 +15,7 @@ public:
     void checkObstacles();
     int totalObstacles();
     bool checkCollision(Car);
+    void cleanList();
 };
 
 #endif // OBSTACLE_LIST_H

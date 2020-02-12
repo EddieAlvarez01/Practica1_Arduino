@@ -720,8 +720,13 @@ void loop() {
               lc.clearDisplay(0);
               opcion_actual = 2;
               cleanMatrix();
+              g.obstacleList.cleanList();
+              period = 4;
+              velocity = 1500;
               countdown();
               miliseconds = millis();
+              noPressedTime = 0;
+              pressedTime = 0;
               break;
             }
           }else{
@@ -745,20 +750,17 @@ void loop() {
           car.p5.y++;
         }
         checkOut();
-        if(digitalRead(pause)){
-          timePaused = tiempoS();
-          opcion_actual = 4;
-          break;
-        }
         //CHEQUEO DE COLISION
         if(g.obstacleList.checkCollision(car)){
           timePaused = tiempoS();
+          g.obstacleList.cleanList();
           opcion_actual = 3;
           break;
         }
         downwardMovement();
         if(g.obstacleList.checkCollision(car)){
           timePaused = tiempoS();
+          g.obstacleList.cleanList();
           opcion_actual = 3;
           break;
         }
@@ -775,6 +777,27 @@ void loop() {
         saveMatrix();
         barrido();
         cleanMatrix();
+        if(digitalRead(pause)){
+          pressedTime = millis();
+          if((pressedTime -  noPressedTime) >= 2700){
+            opcion_actual = 0;
+            g.obstacleList.cleanList();
+            noPressedTime = millis();
+              pressedTime = 0;
+            lc.clearDisplay(0);
+            break;
+          }else{
+            delay(400);
+            if(!digitalRead(pause)){
+              timePaused = tiempoS();
+              opcion_actual = 4;
+              break; 
+            }
+          }
+        }else{
+          noPressedTime = millis();
+        }
+        increaseSpeed();
     }break;
     case 3:{
       showTimePlayed(timePaused);
@@ -788,6 +811,7 @@ void loop() {
       if(digitalRead(pause)){
         countdown();
         opcion_actual = 2;
+        miliseconds = millis() - miliseconds;
         break;
       }
     }break;  
@@ -992,5 +1016,17 @@ void checkOut(){
     car.p3.y = 6;
     car.p4.y = 5;
     car.p5.y = 7;
+  }
+}
+
+//Verifica los 10 segundos y aenta la velocidad de los obstaculos y la reaparción de estos
+void increaseSpeed(){
+  if(tiempoS() % 10 == 0 && tiempoS() > 0){
+    if(period > 2){
+      period--;
+    }
+    if(velocity > 500){
+      velocity -= 500;
+    }  
   }
 }
