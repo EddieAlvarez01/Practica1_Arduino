@@ -749,7 +749,15 @@ void loop() {
           car.p4.y++;
           car.p5.y++;
         }
-        checkOut();
+        
+        //Comprueba si se sale de la pista
+        if(checkOut()){
+          timePaused = tiempoS();
+          g.obstacleList.cleanList();
+          opcion_actual = 3;
+          break;
+        }
+     
         //CHEQUEO DE COLISION
         if(g.obstacleList.checkCollision(car)){
           timePaused = tiempoS();
@@ -1003,20 +1011,13 @@ void showTimePlayed(unsigned long timeGame){
 }
 
 //Comprueba si el carro salio de la matriz en izquierda o derecha
-void checkOut(){ 
+bool checkOut(){ 
   if(car.p1.y < 0 || car.p2.y < 0 || car.p3.y < 0 || car.p4.y < 0 || car.p5.y < 0){
-    car.p1.y = 0;
-    car.p2.y = 2;
-    car.p3.y = 1;
-    car.p4.y = 0;
-    car.p5.y = 2;
+    return true;
   }else if(car.p1.y > 7 || car.p2.y > 7 || car.p3.y > 7 || car.p4.y > 7 || car.p5.y > 7){
-    car.p1.y = 5;
-    car.p2.y = 7;
-    car.p3.y = 6;
-    car.p4.y = 5;
-    car.p5.y = 7;
+    return true;
   }
+  return false;
 }
 
 //Verifica los 10 segundos y aenta la velocidad de los obstaculos y la reaparción de estos
